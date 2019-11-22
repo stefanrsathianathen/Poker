@@ -42,19 +42,29 @@ class Deck:
 class Player:
     def __init__(self, name):
         self.name = name
-        self.hand = []
     
     def draw(self, deck):
-        self.hand.append(deck.drawCard())
-        self.hand.append(deck.drawCard())
-        return self
+        self.hand = Hand(deck)
     
     def showHand(self):
-        for card in self.hand:
-            card.show()
+        self.hand.showHand()
 
     def reset(self):
         self.hand = []
     
     def getName(self):
         return self.name
+
+class Hand:
+    def __init__(self,deck):
+        self.deck = deck
+        self.hand = []
+        self.draw()
+
+    def draw(self):
+        self.hand.append(self.deck.drawCard())
+        self.hand.append(self.deck.drawCard())
+
+    def showHand(self):
+        for card in self.hand:
+            card.show()
