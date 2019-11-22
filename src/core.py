@@ -16,6 +16,19 @@ class Card:
             trueValue = str(self.value)
         print("{} of {}".format(trueValue, self.suit))
 
+    def __str__(self):
+        if self.value == 1:
+            trueValue = "A"
+        elif self.value == 11:
+            trueValue = "J"
+        elif self.value == 12:
+            trueValue = "Q"
+        elif self.value == 13:
+            trueValue = "K"
+        else:
+            trueValue = str(self.value)
+        return f"{trueValue}{self.suit}"
+
 class Deck:
     def __init__(self):
         self.cards = []
@@ -47,7 +60,7 @@ class Player:
         self.hand = Hand(deck)
     
     def showHand(self):
-        self.hand.showHand()
+        return str(self.hand)
 
     def reset(self):
         self.hand = []
@@ -58,13 +71,17 @@ class Player:
 class Hand:
     def __init__(self,deck):
         self.deck = deck
-        self.hand = []
         self.draw()
 
     def draw(self):
-        self.hand.append(self.deck.drawCard())
-        self.hand.append(self.deck.drawCard())
-
-    def showHand(self):
-        for card in self.hand:
-            card.show()
+        self.first = self.deck.drawCard()
+        self.second = self.deck.drawCard()
+        
+        #this will be used for ai players
+        if self.first.suit == self.second.suit:
+            self.suited = True
+        else:
+            self.suited = False
+    
+    def __str__(self):
+        return f"({self.first},{self.second})"

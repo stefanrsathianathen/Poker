@@ -59,8 +59,7 @@ class Round:
 
     def showAllHands(self):
         for player in self.players:
-            print(player.getName() + "'s hand: ")
-            player.showHand()
+            print(player.getName() + "'s hand: " + player.showHand())
             print("\n")
 
 
