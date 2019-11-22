@@ -52,12 +52,6 @@ class Round:
             self.showCommunalCards()
             self.dealRound = 0
 
-
-    def dealOneCard(self):
-        self.communalCards.append(self.deck.drawCard())
-        self.showCommunalCards()
-
-
     def showCommunalCards(self):
         for card in self.communalCards:
             card.show()
