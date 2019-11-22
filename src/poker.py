@@ -21,6 +21,7 @@ class Round:
     def __init__(self, players):
         self.newDeck()
         self.players = players
+        self.dealRound = 3
 
     def newDeck(self):
         self.deck = c.Deck()
@@ -30,24 +31,32 @@ class Round:
         for player in self.players:
             player.draw(self.deck)
 
-    def flop(self):
-        #burn a card
-        self.deck.drawCard()
+    def dealCommunalCards(self):
+        if self.dealRound == 3:
+            #burn a card
+            self.deck.drawCard()
+            self.communalCards = [self.deck.drawCard() for i in range(3)]
+            print("After the flop is: ")
+            self.showCommunalCards()
+            self.dealRound = 2
+        
+        elif self.dealRound == 2:
+            self.communalCards.append(self.deck.drawCard())
+            print("After the turn is: ")
+            self.showCommunalCards()
+            self.dealRound = 1
+        
+        else:
+            self.communalCards.append(self.deck.drawCard())
+            print("After the river is: ")
+            self.showCommunalCards()
+            self.dealRound = 0
 
-        self.communalCards = [self.deck.drawCard() for i in range(3)]
-        print("The flop is: ")
-        self.showCommunalCards()
-        print("\n")
 
-    def turn(self):
+    def dealOneCard(self):
         self.communalCards.append(self.deck.drawCard())
-        print("After turn card:")
         self.showCommunalCards()
 
-    def river(self):
-        self.communalCards.append(self.deck.drawCard())
-        print("After river card:")
-        self.showCommunalCards()
 
     def showCommunalCards(self):
         for card in self.communalCards:
@@ -66,8 +75,8 @@ game = Poker()
 game.playRound()
 game.round.deal()
 
-game.round.flop()
-game.round.turn()
-game.round.river()
+game.round.dealCommunalCards()
+game.round.dealCommunalCards()
+game.round.dealCommunalCards()
 
 game.round.showAllHands()
