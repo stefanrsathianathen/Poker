@@ -9,9 +9,18 @@ class PokerPlayer(c.Player):
 
 class Poker:
     def __init__(self):
-        self.newDeck()
+        self.roundNumber = 1
         #this is hardcoded
         self.players = [PokerPlayer("1"), PokerPlayer("2")]
+
+    def playRound(self):
+        self.round = Round(self.players)
+        self.roundNumber += 1
+
+class Round:
+    def __init__(self, players):
+        self.newDeck()
+        self.players = players
 
     def newDeck(self):
         self.deck = c.Deck()
@@ -51,11 +60,14 @@ class Poker:
             player.showHand()
             print("\n")
 
+
+# this is all testing driver code (will change)
 game = Poker()
-game.deal()
+game.playRound()
+game.round.deal()
 
-game.flop()
-game.turn()
-game.river()
+game.round.flop()
+game.round.turn()
+game.round.river()
 
-game.showAllHands()
+game.round.showAllHands()
