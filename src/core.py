@@ -22,7 +22,7 @@ class Deck:
         self.build()
 
     def build(self):
-        for s in ["Spades", "Clubs", "Diamonds", "Hearts"]:
+        for s in ["♠", "♣", "♦", "♥"]:
             for v in range(1, 14):
                 self.cards.append(Card(s, v))
     
@@ -55,3 +55,6 @@ class Player:
 
     def reset(self):
         self.hand = []
+    
+    def getName(self):
+        return self.name
