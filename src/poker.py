@@ -7,8 +7,16 @@ class PokerPlayer(c.Player):
         #this should not be hardcoded
         stack = 100
     
-    def action(self):
-        pass
+    def action(self, roundDetails):
+        print("The Communal cards: ")
+        roundDetails.getCommunalCards()
+        print("The current bet is: " + str(roundDetails.amountToCall))
+        print("Your Cards:" + self.showHand())
+        
+    
+    def printActions(self):
+        print("What Do you")
+
 
 class Poker:
     def __init__(self):
@@ -33,7 +41,9 @@ class Round:
         self.pot = 0
         self.amountToCall = bigBlind
         self.playersCurrentBets = [0]*len(players)
-        self.status = STATUS.IN_ROUND
+        self.status = ROUNDSTATUS.IN_ROUND
+        self.bettingStatus = BETTINGSTATUS.BETTING
+        self.communalCards = None
         self.play()
 
     def newDeck(self):
@@ -47,13 +57,23 @@ class Round:
     def play(self):
         self.deal()
         playerPointer = 0
-        while self.status == STATUS.IN_ROUND:
-            self.players[playerPointer].action()
+        while self.status == ROUNDSTATUS.IN_ROUND:
+            action = self.players[playerPointer].action(self)
+            self.processPlayerAction(action, playerPointer)
             playerPointer += 1
             if playerPointer == self.amountOfPlayers:
-                self.dealCommunalCards()
+                if self.bettingStatus == BETTINGSTATUS.READY:
+                    self.dealCommunalCards()
                 playerPointer = 0
 
+    def processPlayerAction(self,action, player):
+        # if this is the last play make check to see if ready to move on
+        if (player + 1) == self.amountOfPlayers and self.isReadyForCommunalCards():
+            self.bettingStatus = BETTINGSTATUS.READY
+
+    def isReadyForCommunalCards(self):
+        bets = set(self.playersCurrentBets)
+        return len(bets) == 1 or (len(bets) == 2 and (None in bets))
 
     def dealCommunalCards(self):
         if self.dealRound == 3:
@@ -62,22 +82,25 @@ class Round:
             self.communalCards = [self.deck.drawCard() for i in range(3)]
             print("After the flop: ")
             self.showCommunalCards()
+            self.bettingStatus = BETTINGSTATUS.BETTING
             self.dealRound = 2
         
         elif self.dealRound == 2:
             self.communalCards.append(self.deck.drawCard())
             print("After the turn: ")
             self.showCommunalCards()
+            self.bettingStatus = BETTINGSTATUS.BETTING
             self.dealRound = 1
         
         elif self.dealRound == 1:
             self.communalCards.append(self.deck.drawCard())
             print("After the river: ")
             self.showCommunalCards()
+            self.bettingStatus = BETTINGSTATUS.BETTING
             self.dealRound = 0
         
         else:
-            self.status = STATUS.FINISH
+            self.status = ROUNDSTATUS.FINISH
             self.showAllHands() #this will find winners or something
 
     def showCommunalCards(self):
@@ -85,7 +108,16 @@ class Round:
             card.show()
         print("\n")
 
+    def getCommunalCards(self):
+        if self.communalCards == None:
+            return ""
+        else:
+            self.showCommunalCards()
+
     def showAllHands(self):
+        print("\n\nCommunal Cards")
+        # print the winner
+        self.showCommunalCards()
         for player in self.players:
             print(player.getName() + "'s hand: " + player.showHand())
             print("\n")
@@ -96,9 +128,14 @@ class ACTION(Enum):
     CALL = auto()
     FOLD = auto()
 
-class STATUS(Enum):
+class ROUNDSTATUS(Enum):
     IN_ROUND = auto()
     FINISH = auto()
+    FOLD = auto()
+
+class BETTINGSTATUS(Enum):
+    BETTING = auto()
+    READY = auto()
 
 # this is all testing driver code (will change)
 game = Poker()
