@@ -1,21 +1,21 @@
 import core as c
-from enum import Enum,auto
+import enums as e
+import handRanker as ranker
 
 class PokerPlayer(c.Player):
     def __init__(self, name):
         super().__init__(name)
         #this should not be hardcoded
         stack = 100
+
     
     def action(self, roundDetails):
-        print("The Communal cards: ")
-        roundDetails.getCommunalCards()
-        print("The current bet is: " + str(roundDetails.amountToCall))
-        print("Your Cards:" + self.showHand())
+        pass
+        # print("The Communal cards: ")
+        # roundDetails.getCommunalCards()
+        # print("The current bet is: " + str(roundDetails.amountToCall))
+        # print("Your Cards:" + self.showHand())
         
-    
-    def printActions(self):
-        print("What Do you")
 
 
 class Poker:
@@ -41,8 +41,8 @@ class Round:
         self.pot = 0
         self.amountToCall = bigBlind
         self.playersCurrentBets = [0]*len(players)
-        self.status = ROUNDSTATUS.IN_ROUND
-        self.bettingStatus = BETTINGSTATUS.BETTING
+        self.status = e.ROUNDSTATUS.IN_ROUND
+        self.bettingStatus = e.BETTINGSTATUS.BETTING
         self.communalCards = None
         self.play()
 
@@ -57,19 +57,19 @@ class Round:
     def play(self):
         self.deal()
         playerPointer = 0
-        while self.status == ROUNDSTATUS.IN_ROUND:
+        while self.status == e.ROUNDSTATUS.IN_ROUND:
             action = self.players[playerPointer].action(self)
             self.processPlayerAction(action, playerPointer)
             playerPointer += 1
             if playerPointer == self.amountOfPlayers:
-                if self.bettingStatus == BETTINGSTATUS.READY:
+                if self.bettingStatus == e.BETTINGSTATUS.READY:
                     self.dealCommunalCards()
                 playerPointer = 0
 
     def processPlayerAction(self,action, player):
         # if this is the last play make check to see if ready to move on
         if (player + 1) == self.amountOfPlayers and self.isReadyForCommunalCards():
-            self.bettingStatus = BETTINGSTATUS.READY
+            self.bettingStatus = e.BETTINGSTATUS.READY
 
     def isReadyForCommunalCards(self):
         bets = set(self.playersCurrentBets)
@@ -82,25 +82,25 @@ class Round:
             self.communalCards = [self.deck.drawCard() for i in range(3)]
             print("After the flop: ")
             self.showCommunalCards()
-            self.bettingStatus = BETTINGSTATUS.BETTING
+            self.bettingStatus = e.BETTINGSTATUS.BETTING
             self.dealRound = 2
         
         elif self.dealRound == 2:
             self.communalCards.append(self.deck.drawCard())
             print("After the turn: ")
             self.showCommunalCards()
-            self.bettingStatus = BETTINGSTATUS.BETTING
+            self.bettingStatus = e.BETTINGSTATUS.BETTING
             self.dealRound = 1
         
         elif self.dealRound == 1:
             self.communalCards.append(self.deck.drawCard())
             print("After the river: ")
             self.showCommunalCards()
-            self.bettingStatus = BETTINGSTATUS.BETTING
+            self.bettingStatus = e.BETTINGSTATUS.BETTING
             self.dealRound = 0
         
         else:
-            self.status = ROUNDSTATUS.FINISH
+            self.status = e.ROUNDSTATUS.FINISH
             self.showAllHands() #this will find winners or something
 
     def showCommunalCards(self):
@@ -120,22 +120,8 @@ class Round:
         self.showCommunalCards()
         for player in self.players:
             print(player.getName() + "'s hand: " + player.showHand())
+            ranker.HandRanker(self.communalCards,player.cards())
             print("\n")
-
-
-class ACTION(Enum):
-    BET = auto()
-    CALL = auto()
-    FOLD = auto()
-
-class ROUNDSTATUS(Enum):
-    IN_ROUND = auto()
-    FINISH = auto()
-    FOLD = auto()
-
-class BETTINGSTATUS(Enum):
-    BETTING = auto()
-    READY = auto()
 
 # this is all testing driver code (will change)
 game = Poker()

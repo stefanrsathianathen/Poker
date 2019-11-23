@@ -14,7 +14,7 @@ class Card:
             trueValue = "King"
         else:
             trueValue = str(self.value)
-        print("{} of {}".format(trueValue, self.suit))
+        print("{} of {}".format(trueValue, self.suit[0]))
 
     def __str__(self):
         if self.value == 1:
@@ -27,7 +27,7 @@ class Card:
             trueValue = "K"
         else:
             trueValue = str(self.value)
-        return f"{trueValue}{self.suit}"
+        return f"{trueValue}{self.suit[0]}"
 
 class Deck:
     def __init__(self):
@@ -35,7 +35,7 @@ class Deck:
         self.build()
 
     def build(self):
-        for s in ["♠", "♣", "♦", "♥"]:
+        for s in [("♠","s"), ("♣","c"), ("♦","d"), ("♥","h")]:
             for v in range(1, 14):
                 self.cards.append(Card(s, v))
     
@@ -61,6 +61,9 @@ class Player:
     
     def showHand(self):
         return str(self.hand)
+    
+    def cards(self):
+        return self.hand.cards()
 
     def reset(self):
         self.hand = []
@@ -83,5 +86,8 @@ class Hand:
         else:
             self.suited = False
     
+    def cards(self):
+        return [self.first, self.second]
+
     def __str__(self):
         return f"({self.first},{self.second})"
