@@ -3,45 +3,44 @@ import core as c
 import enums as e
 
 class HandRanker:
-    def __init__(self,communalCards, hand):
-        self.communalCards = communalCards
-        self.hand = hand
-        self.rank()
     
-    def rank(self):
+    def rank(self,communalCards, hand):
         # merge both arrays
-        self.cards = self.communalCards + self.hand
+        if not communalCards == None:
+            self.cards = communalCards + hand
+        else:
+            self.cards = hand
 
         #royal flush
         if self.royalFlush():
-            print("Royal Flush")
+            return e.HANDRANK.ROYAL_FLUSH
         #straight flush
         elif self.straight() and self.flush():
-            print("Straight Flush")
+            return e.HANDRANK.STRAIGHT_FLUSH
         #four of a kind
         elif self.hasPair(4):
-            print("Four of a kind")
+            return e.HANDRANK.FOUR_OF_A_KIND
         #full house
         elif self.hasPair(3) and self.hasPair(2):
-            print("Full House")
+            return e.HANDRANK.FULL_HOUSE
         #flush
         elif self.flush():
-            print("Flush")
+            return e.HANDRANK.FLUSH
         #straight
         elif self.straight():
-            print("Straight")
+            return e.HANDRANK.STRAIGHT
         #three of a kind
         elif self.hasPair(3):
-            print("Three of a kind")
+            return e.HANDRANK.THREE_OF_A_KIND
         #two pair
         elif self.twoPair():
-            print("Two pair")
+            return e.HANDRANK.TWO_PAIR
         #pair
         elif self.hasPair(2):
-            print("Pair")
+            return e.HANDRANK.PAIR
         #high card
         else:
-            print("High Card")
+            return e.HANDRANK.HIGH_CARD
     
     def hasPair(self, threshold):
         cardMapping = {}
@@ -90,6 +89,9 @@ class HandRanker:
             cardValues.append(card.value)
         cardValues = sorted(cardValues)
         
+        if len(cardValues) < 5:
+            return False
+
         for i in range(0,3):
             tmpCard = cardValues[i]
             counter = 1

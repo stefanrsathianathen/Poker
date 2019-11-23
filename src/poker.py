@@ -10,7 +10,7 @@ class PokerPlayer(c.Player):
 
     
     def action(self, roundDetails):
-        pass
+        self.handRank = ranker.HandRanker().rank(roundDetails.getCommunalCards(), self.cards())
         # print("The Communal cards: ")
         # roundDetails.getCommunalCards()
         # print("The current bet is: " + str(roundDetails.amountToCall))
@@ -81,27 +81,26 @@ class Round:
             self.deck.drawCard()
             self.communalCards = [self.deck.drawCard() for i in range(3)]
             print("After the flop: ")
-            self.showCommunalCards()
-            self.bettingStatus = e.BETTINGSTATUS.BETTING
-            self.dealRound = 2
+            self.__showCards__()
         
         elif self.dealRound == 2:
             self.communalCards.append(self.deck.drawCard())
             print("After the turn: ")
-            self.showCommunalCards()
-            self.bettingStatus = e.BETTINGSTATUS.BETTING
-            self.dealRound = 1
+            self.__showCards__()
         
         elif self.dealRound == 1:
             self.communalCards.append(self.deck.drawCard())
             print("After the river: ")
-            self.showCommunalCards()
-            self.bettingStatus = e.BETTINGSTATUS.BETTING
-            self.dealRound = 0
+            self.__showCards__()
         
         else:
             self.status = e.ROUNDSTATUS.FINISH
             self.showAllHands() #this will find winners or something
+
+    def __showCards__(self):
+        self.showCommunalCards()
+        self.bettingStatus = e.BETTINGSTATUS.BETTING
+        self.dealRound -= 1
 
     def showCommunalCards(self):
         for card in self.communalCards:
@@ -110,18 +109,41 @@ class Round:
 
     def getCommunalCards(self):
         if self.communalCards == None:
-            return ""
+            return []
         else:
-            self.showCommunalCards()
+            return self.communalCards
 
     def showAllHands(self):
-        print("\n\nCommunal Cards")
-        # print the winner
+        print("Communal Cards:")
         self.showCommunalCards()
-        for player in self.players:
-            print(player.getName() + "'s hand: " + player.showHand())
-            ranker.HandRanker(self.communalCards,player.cards())
+        winners = self.findWinner()
+        if len(winners[0]) == 1:
+            print(winners[0][0].getName() + " win's with a " + winners[1].value[1])
             print("\n")
+        else:
+            winnersStr = ""
+            for x in range(0, len(winners)):
+                winnersStr += winners[0][x].getName()
+                if x < len(winners) - 1:
+                    winnersStr += ", "
+            winnersStr += " split pot with a " + winners[1].value[1]
+            print(winnersStr + "\n")
+
+        for player in self.players:
+            print(player.getName() + "'s hand: " + player.showHand() + " " + player.handRank.value[1])
+            print("\n")
+
+    def findWinner(self):
+        player = None
+        hand = e.HANDRANK.NOTHING
+        for p in self.players:
+            if p.handRank > hand:
+                player = [p]
+                hand = p.handRank
+            elif p.handRank == hand:
+                player.append(p)
+        return (player, hand)
+
 
 # this is all testing driver code (will change)
 game = Poker()
