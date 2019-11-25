@@ -53,9 +53,13 @@ class Deck:
         return self.cards.pop()
     
 class Player:
-    def __init__(self, name):
+    def __init__(self, name, stackSize):
         self.name = name
+        self.stack = stackSize
     
+    def action(self,round):
+        pass
+
     def draw(self, deck):
         self.hand = Hand(deck)
     

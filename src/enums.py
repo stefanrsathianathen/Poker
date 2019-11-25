@@ -3,6 +3,8 @@ from enum import Enum,auto
 class ACTION(Enum):
     BET = auto()
     CALL = auto()
+    CHECK = auto()
+    ALLIN = auto()
     FOLD = auto()
 
 class ROUNDSTATUS(Enum):
