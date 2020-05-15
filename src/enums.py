@@ -14,7 +14,7 @@ class ROUNDSTATUS(Enum):
 
 class BETTINGSTATUS(Enum):
     BETTING = auto()
-    READY = auto()
+    DONE = auto()
 
 class HANDRANK(Enum):
     ROYAL_FLUSH = (10, "Royal Flush")

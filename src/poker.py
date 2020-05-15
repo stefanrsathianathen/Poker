@@ -1,3 +1,4 @@
+import os
 import core as c
 import enums as e
 import handRanker as ranker
@@ -10,8 +11,11 @@ class PokerPlayer(c.Player):
     
     def action(self, roundDetails):
         self.handRank = ranker.HandRanker().rank(roundDetails.getCommunalCards(), self.cards())
+        os.system('cls' if os.name == 'nt' else 'clear')
         print("The Communal cards: ")
         roundDetails.showCommunalCards()
+        print("Pot: " + str(roundDetails.pot))
+        print("Your Stack: " + str(self.getStack()))
         print("Your Hand: " + self.showHand())
         print("What do you want to do?")
         decision = input()
@@ -33,6 +37,10 @@ class PokerPlayer(c.Player):
             return { "action": e.ACTION.FOLD}
         elif move == 'a' or move == 'allin' or move == 'all':
             return { "action": e.ACTION.ALLIN}
+        elif move == 'ck' or move == 'check':
+            return { "action": e.ACTION.CHECK}
+        else:
+            raise Exception("Invalid Action") 
 
 
 class Poker:
@@ -46,6 +54,7 @@ class Poker:
         self.bigBlindPlayer = 1 #use index
         print("Here is how to enter your decision")
         print("Call or C")
+        print("Check or CK")
         print("Bet Amount or B Amount")
         print("Fold or F")
         print("Allin or A")
@@ -62,7 +71,6 @@ class Round:
         self.amountOfPlayers = len(self.__players)
         self.dealRound = 3
         self.pot = 0
-        self.amountToCall = bigBlind
         self.__playersCurrentBets = [0]*len(players)
         self.__status = e.ROUNDSTATUS.IN_ROUND
         self.__bettingStatus = e.BETTINGSTATUS.BETTING
@@ -90,18 +98,42 @@ class Round:
                 self.__status = e.ROUNDSTATUS.FINISH
 
             elif playerPointer == self.amountOfPlayers:
-                if self.__bettingStatus == e.BETTINGSTATUS.READY:
+                if self.__bettingStatus == e.BETTINGSTATUS.DONE:
                     self.dealCommunalCards()
+                    # reset bets
                 playerPointer = 0
 
-    def processPlayerAction(self, action, player):
+    def processPlayerAction(self, action, playerIndex):
         playerMove = action["action"]
+        player = self.__players[playerIndex]
         if playerMove == e.ACTION.FOLD:
             self.amountOfPlayers -= 1
-            self.__playersCurrentBets[player] = None
+            self.__playersCurrentBets[playerIndex] = None
+        elif playerMove == e.ACTION.BET:
+            if (player.validBet(action["amount"])):
+                self.__playersCurrentBets[playerIndex] += action["amount"]
+                player.bet(action["amount"])
+                self.pot += action["amount"]
+        elif playerMove == e.ACTION.CALL:
+            currentBet = self.__playersCurrentBets[playerIndex]
+            betAmount = max(self.__playersCurrentBets) - currentBet
+            if player.validBet(betAmount):
+                self.__playersCurrentBets[playerIndex] = currentBet + betAmount
+                self.pot += betAmount
+                player.bet(betAmount)
+            # self.__playersCurrentBets[playerIndex] = max(self.__playersCurrentBets[playerIndex]) 
+            # player.bet(action["amount"])
+            # self.pot += action["amount"]
+        elif playerMove == e.ACTION.ALLIN:
+            self.__playersCurrentBets[playerIndex] = player.getStack()
+            player.bet(player.getStack())
+        elif playerMove == e.ACTION.CHECK:
+            pass
+        else:
+            raise Exception("Unknown state")
         # if this is the last play make check to see if ready to move on
-        elif (player + 1) == self.amountOfPlayers and self.isReadyForCommunalCards():
-            self.__bettingStatus = e.BETTINGSTATUS.READY
+        if (playerIndex + 1) == self.amountOfPlayers and self.isReadyForCommunalCards():
+            self.__bettingStatus = e.BETTINGSTATUS.DONE
 
     def isReadyForCommunalCards(self):
         bets = set(self.__playersCurrentBets)
@@ -131,7 +163,7 @@ class Round:
 
     def __showCards__(self):
         self.showCommunalCards()
-        self.bettingStatus = e.BETTINGSTATUS.BETTING
+        self.__bettingStatus = e.BETTINGSTATUS.BETTING
         self.__playersCurrentBets = [0 if x != None else None for x in self.__playersCurrentBets]
         self.dealRound -= 1
 

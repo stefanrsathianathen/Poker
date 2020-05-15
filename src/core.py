@@ -75,6 +75,15 @@ class Player:
     def getName(self):
         return self.name
 
+    def bet(self, amount):
+        self.stack -= amount
+    
+    def validBet(self, amount):
+        return self.stack - amount  >= 0
+
+    def getStack(self):
+        return self.stack
+
 class Hand:
     def __init__(self,deck):
         self.deck = deck
