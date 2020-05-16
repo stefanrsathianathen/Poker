@@ -1,7 +1,7 @@
 class Card:
-    def __init__(self, suit, val):
+    def __init__(self, suit, value):
         self.suit = suit
-        self.value = val
+        self.value = value
     
     def show(self):
         if self.value == 1:
@@ -56,6 +56,7 @@ class Player:
     def __init__(self, name, stackSize):
         self.name = name
         self.stack = stackSize
+        self.hand = []
     
     def action(self,round):
         pass
@@ -83,6 +84,9 @@ class Player:
 
     def getStack(self):
         return self.stack
+
+    def getHand(self):
+        return self.hand
 
 class Hand:
     def __init__(self,deck):

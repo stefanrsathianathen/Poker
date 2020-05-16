@@ -22,11 +22,6 @@ class PokerPlayer(c.Player):
             return self.getAction(roundDetails, limit)
         return internalAction
 
-    def isValidAmount(self, amount):
-        if (self.getStack() - amount) >= 0:
-            return True
-        return False
-
     def tableInfo(self, roundDetails):
         os.system('cls' if os.name == 'nt' else 'clear')
         print("The Communal cards: ")
