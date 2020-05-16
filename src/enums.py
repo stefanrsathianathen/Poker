@@ -5,7 +5,9 @@ class ACTION(Enum):
     CALL = auto()
     CHECK = auto()
     ALLIN = auto()
+    RAISE = auto()
     FOLD = auto()
+    INVALID = auto()
 
 class ROUNDSTATUS(Enum):
     IN_ROUND = auto()
@@ -33,3 +35,6 @@ class HANDRANK(Enum):
         if self.__class__ is value.__class__:
             return self.value[0] < value.value[0]
         return NotImplemented
+
+    def __str__(self):
+        return self.value[1]

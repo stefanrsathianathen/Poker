@@ -9,30 +9,56 @@ class PokerPlayer(c.Player):
         #this should not be hardcoded
 
     
-    def action(self, roundDetails):
+    def action(self, roundDetails, limit):
         self.handRank = ranker.HandRanker().rank(roundDetails.getCommunalCards(), self.cards())
+        return self.getAction(roundDetails,limit)
+        
+
+    def getAction(self, roundDetails, limit):
+        self.availableActions(roundDetails, limit)
+        action = input()
+        internalAction = self.handleAction(action, limit)
+        if internalAction == e.ACTION.INVALID:
+            return self.getAction(roundDetails, limit)
+        return internalAction
+
+    def isValidAmount(self, amount):
+        if (self.getStack() - amount) >= 0:
+            return True
+        return False
+
+    def tableInfo(self, roundDetails):
         os.system('cls' if os.name == 'nt' else 'clear')
         print("The Communal cards: ")
         roundDetails.showCommunalCards()
         print("Pot: " + str(roundDetails.pot))
         print("Your Stack: " + str(self.getStack()))
         print("Your Hand: " + self.showHand())
+        print("Currently have: " + str(self.handRank) + "\n")
+
+    def availableActions(self, roundDetails ,limit):
+        self.tableInfo(roundDetails)
         print("What do you want to do?")
-        decision = input()
-        return self.handleDecision(decision, roundDetails)
+        print("Call or C")
+        if not limit:
+            print("Check or CK")
+            print("Bet Amount or B Amount")
+        elif limit:
+            print("Raise Amount or R Amount")
+        print("Allin or A")
+        print("Fold or F")
+        print("\n")
 
-    def isValidAmount(self, amount):
-        if (self.stack - amount) >= 0:
-            return True
-        return False
-
-    def handleDecision(self, usersInput, roundDetails):
-        userDecision = usersInput.lower().split()
-        move = userDecision[0]
+    def handleAction(self, usersInput, limit):
+        userAction = usersInput.lower().split()
+        move = userAction[0]
+        if limit:
+            if move == 'ck' or move == 'check' or move == 'b' or move == 'bet':
+                return e.ACTION.INVALID
         if move == 'c' or move == 'call':
             return { "action": e.ACTION.CALL }
         elif move == 'b' or move == 'bet':
-            return { "action": e.ACTION.BET, "amount": int(userDecision[1])}
+            return { "action": e.ACTION.BET, "amount": int(userAction[1])}
         elif move == 'f' or move == 'fold':
             return { "action": e.ACTION.FOLD}
         elif move == 'a' or move == 'allin' or move == 'all':
@@ -40,7 +66,7 @@ class PokerPlayer(c.Player):
         elif move == 'ck' or move == 'check':
             return { "action": e.ACTION.CHECK}
         else:
-            raise Exception("Invalid Action") 
+            return e.ACTION.INVALID
 
 
 class Poker:
@@ -89,7 +115,7 @@ class Round:
         self.deal()
         playerPointer = 0
         while self.__status == e.ROUNDSTATUS.IN_ROUND:
-            action = self.__players[playerPointer].action(self)
+            action = self.__players[playerPointer].action(self, self.__limit__(playerPointer))
             self.processPlayerAction(action, playerPointer)
             playerPointer += 1
 
@@ -103,6 +129,10 @@ class Round:
                     # reset bets
                 playerPointer = 0
 
+    def __limit__(self, playerPointer):
+        biggestBet = max(self.__playersCurrentBets)
+        return not (self.__playersCurrentBets[playerPointer] == biggestBet)
+
     def processPlayerAction(self, action, playerIndex):
         playerMove = action["action"]
         player = self.__players[playerIndex]
@@ -111,22 +141,18 @@ class Round:
             self.__playersCurrentBets[playerIndex] = None
         elif playerMove == e.ACTION.BET:
             if (player.validBet(action["amount"])):
-                self.__playersCurrentBets[playerIndex] += action["amount"]
-                player.bet(action["amount"])
-                self.pot += action["amount"]
+                self.__makeBet__(playerIndex, player, action["amount"])
         elif playerMove == e.ACTION.CALL:
             currentBet = self.__playersCurrentBets[playerIndex]
             betAmount = max(self.__playersCurrentBets) - currentBet
+            # if a player can call the bet just call
+            # otherwise the player should be all in
             if player.validBet(betAmount):
-                self.__playersCurrentBets[playerIndex] = currentBet + betAmount
-                self.pot += betAmount
-                player.bet(betAmount)
-            # self.__playersCurrentBets[playerIndex] = max(self.__playersCurrentBets[playerIndex]) 
-            # player.bet(action["amount"])
-            # self.pot += action["amount"]
+                self.__makeBet__(playerIndex, player, betAmount)
+            else:
+                self.__makeBet__(playerIndex, player, player.getStack())
         elif playerMove == e.ACTION.ALLIN:
-            self.__playersCurrentBets[playerIndex] = player.getStack()
-            player.bet(player.getStack())
+            self.__makeBet__(playerIndex, player, player.getStack())
         elif playerMove == e.ACTION.CHECK:
             pass
         else:
@@ -134,6 +160,11 @@ class Round:
         # if this is the last play make check to see if ready to move on
         if (playerIndex + 1) == self.amountOfPlayers and self.isReadyForCommunalCards():
             self.__bettingStatus = e.BETTINGSTATUS.DONE
+
+    def __makeBet__(self, playerIndex, player, amount):
+        self.__playersCurrentBets[playerIndex] += amount
+        self.pot += amount
+        player.bet(amount)
 
     def isReadyForCommunalCards(self):
         bets = set(self.__playersCurrentBets)
@@ -186,7 +217,7 @@ class Round:
         self.showCommunalCards()
         self.printWinner()
         for player in self.__players:
-            print(player.getName() + "'s hand: " + player.showHand() + " " + player.handRank.value[1])
+            print(player.getName() + "'s hand: " + player.showHand() + " " + str(player.handRank))
             print("\n")
 
     def printWinner(self):
@@ -201,7 +232,7 @@ class Round:
             return
         winners = self.findWinner()
         if len(winners[0]) == 1:
-            print(winners[0][0].getName() + " win's with a " + winners[1].value[1])
+            print(winners[0][0].getName() + " win's with a " + str(winners[1]))
             print("\n")
         else:
             winnersStr = ""
@@ -209,7 +240,7 @@ class Round:
                 winnersStr += winners[0][x].getName()
                 if x < len(winners) - 1:
                     winnersStr += ", "
-            winnersStr += " split pot with a " + winners[1].value[1]
+            winnersStr += " split pot with a " + str(winners[1])
             print(winnersStr + "\n")
 
 
