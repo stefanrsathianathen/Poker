@@ -1,9 +1,7 @@
 if not (__name__ == '__main__'):
-    print("here")
     from . import core as c
     from . import enums as e
 else:
-    print("other person")
     import core as c
     import enums as e
 
@@ -11,7 +9,6 @@ else:
 class HandRanker:
     
     def rank(self,communalCards, hand):
-        # merge both arrays
         if not communalCards == None:
             self.cards = communalCards + hand
         else:
@@ -20,8 +17,8 @@ class HandRanker:
         #royal flush
         if self.royalFlush():
             return e.HANDRANK.ROYAL_FLUSH
-        #straight flush
-        elif self.straight() and self.flush():
+        #straight flush NEED TO FIX THIS
+        elif self.straightFlush():
             return e.HANDRANK.STRAIGHT_FLUSH
         #four of a kind
         elif self.hasPair(4):
@@ -77,9 +74,15 @@ class HandRanker:
             return True
         return False
     
-    def flush(self):
+    def flush(self, cardsToCheck = None):
+        if cardsToCheck == None:
+            cards = self.cards
+        else:
+            cards = []
+            for x in cardsToCheck:
+                cards.append(x[0])
         suitMapping = {}
-        for card in self.cards:
+        for card in cards:
             if card.suit[1] not in suitMapping:
                 suitMapping[card.suit[1]] = 0
             suitMapping[card.suit[1]] += 1
@@ -92,24 +95,31 @@ class HandRanker:
     def straight(self):
         cardValues = []
         for card in self.cards:
-            cardValues.append(card.value)
-        cardValues = sorted(cardValues)
+            cardValues.append((card,int(card.value)))
+        cardValues = sorted(cardValues, key=lambda x: x[1])
         
         if len(cardValues) < 5:
             return False
 
         for i in range(0,3):
-            tmpCard = cardValues[i]
+            tmpCard = cardValues[i][1]
             counter = 1
+            straightCards = [cardValues[i]]
             for j in range(i+1, len(cardValues)):
-                if (cardValues[j] - tmpCard) == 1:
-                    tmpCard = cardValues[j]
+                if (cardValues[j][1] - tmpCard) == 1:
+                    tmpCard = cardValues[j][1]
+                    straightCards.append(cardValues[j])
                     counter += 1
                 else:
                     break
             if counter == 5:
+                self.straightCards = straightCards
                 return True
         return False
+
+    def straightFlush(self):
+        if self.straight():
+            return self.flush(self.straightCards)
     
     def royalFlush(self):
         cardValues = []
@@ -123,6 +133,3 @@ class HandRanker:
             else:
                 return False
         return self.flush()
-
-hand = [c.Card(("♣","c"), "K"), c.Card(("♠","s"), "K") ]
-print(HandRanker().rank(None, hand))
