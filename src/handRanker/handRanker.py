@@ -1,6 +1,6 @@
 
-import core as c
-import enums as e
+from core import core as c
+from enums import enums as e
 
 class HandRanker:
     
