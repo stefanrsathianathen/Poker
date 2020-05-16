@@ -1,6 +1,12 @@
+if not (__name__ == '__main__'):
+    print("here")
+    from . import core as c
+    from . import enums as e
+else:
+    print("other person")
+    import core as c
+    import enums as e
 
-from core import core as c
-from enums import enums as e
 
 class HandRanker:
     
@@ -117,3 +123,6 @@ class HandRanker:
             else:
                 return False
         return self.flush()
+
+hand = [c.Card(("♣","c"), "K"), c.Card(("♠","s"), "K") ]
+print(HandRanker().rank(None, hand))

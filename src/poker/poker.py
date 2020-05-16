@@ -1,7 +1,7 @@
 import os
 from core import core as c
-from enums import enums as e
-from handRanker import handRanker as ranker
+from core import enums as e
+from core import handRanker as ranker
 
 class PokerPlayer(c.Player):
     def __init__(self, name):
