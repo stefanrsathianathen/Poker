@@ -1,6 +1,6 @@
 import unittest
 import context
-from poker import core
+from core import core
 
 class TestCore(unittest.TestCase):
 
